@@ -151,16 +151,29 @@ Console.WriteLine($"CLOUDAMQP_URL = {cloudAmqpUrl}");
 builder.Services.AddSingleton<IConnection>(sp =>
 {
     if (string.IsNullOrWhiteSpace(cloudAmqpUrl))
-        throw new Exception("CLOUDAMQP_URL is missing");
-
-    var factory = new ConnectionFactory
     {
-        Uri = new Uri(cloudAmqpUrl),
-        AutomaticRecoveryEnabled = true
-    };
+        Console.WriteLine("⚠️ CLOUDAMQP_URL is missing, RabbitMQ disabled");
+        return null!;
+    }
 
-    return factory.CreateConnectionAsync().GetAwaiter().GetResult();
+    try
+    {
+        var factory = new ConnectionFactory
+        {
+            Uri = new Uri(cloudAmqpUrl),
+            AutomaticRecoveryEnabled = true
+        };
+
+        // Use async API with blocking wait
+        return factory.CreateConnectionAsync().GetAwaiter().GetResult();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ RabbitMQ connection failed: {ex.Message}");
+        return null!;
+    }
 });
+
 
 // ============================
 // NOTIFICATION
