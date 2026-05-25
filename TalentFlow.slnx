@@ -1,9 +1,6 @@
 <Solution>
   <Folder Name="/Solution Items/">
     <File Path="Docker-compose.yml" />
-    <File Path="TalentFlow.Api/.dockerignore" />
-    <File Path="TalentFlow.Api/.env" />
-    <File Path="TalentFlow.Api/Dockerfile" />
   </Folder>
   <Project Path="TalentFlow.Api/TalentFlow.Api.csproj" />
   <Project Path="TalentFlow.Application/TalentFlow.Application.csproj" />
