@@ -148,14 +148,10 @@ var cloudAmqpUrl = Environment.GetEnvironmentVariable("CLOUDAMQP_URL")
 
 Console.WriteLine($"CLOUDAMQP_URL = {cloudAmqpUrl}");
 
-builder.Services.AddSingleton<IConnection>(sp =>
-{
-    if (string.IsNullOrWhiteSpace(cloudAmqpUrl))
-    {
-        Console.WriteLine("⚠️ CLOUDAMQP_URL is missing, RabbitMQ disabled");
-        return null!;
-    }
+IConnection? rabbitConnection = null;
 
+if (!string.IsNullOrWhiteSpace(cloudAmqpUrl))
+{
     try
     {
         var factory = new ConnectionFactory
@@ -164,15 +160,26 @@ builder.Services.AddSingleton<IConnection>(sp =>
             AutomaticRecoveryEnabled = true
         };
 
-        // Use async API with blocking wait
-        return factory.CreateConnectionAsync().GetAwaiter().GetResult();
+        rabbitConnection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
+        Console.WriteLine("✅ RabbitMQ connected");
     }
     catch (Exception ex)
     {
         Console.WriteLine($"❌ RabbitMQ connection failed: {ex.Message}");
-        return null!;
     }
-});
+}
+else
+{
+    Console.WriteLine("⚠️ CLOUDAMQP_URL is missing, RabbitMQ disabled");
+}
+
+if (rabbitConnection != null)
+{
+    builder.Services.AddSingleton(rabbitConnection);
+    builder.Services.AddSingleton<OtpConsumer>();
+    builder.Services.AddHostedService<OtpWorker>();
+}
+
 
 
 // ============================
